@@ -1,5 +1,5 @@
 //#include <QCoreApplication>
-#include "include/fastcgi.h"
+
 #include "include/fcgiapp.h"
 #include <QDebug>
 #include <QByteArray>
@@ -9,6 +9,27 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+extern "C" {
+//void __cxa_throw(          void* thrown_exception,
+//			   class type_info *tinfo,
+//			   void (*dest)(void*)){
+//	std::exception* E = (std::exception*) thrown_exception;
+//	//easier to access in the core dump
+//	std::string miao = E->what();
+//	printf("Ora crasho perché %s\n", miao.c_str());
+//	stacker(1);
+//	int*a = 0;
+//	*a = 5;
+//}
+
+
+int select(int nfds, fd_set *readfds, fd_set *writefds,
+	   fd_set *exceptfds, struct timeval *timeout){
+	printf("Ora crasho perché hai usato SELECT! \n");
+	int*a = 0;
+	*a = 5;
+}
+}
 
 
 std::atomic<int> rq{0};
@@ -70,13 +91,13 @@ int main(int argc, char *argv[]) {
 
 	//open random file just to push the count and crash select
 
-//	for (int x=0; x < 1500; x++) {
-//		int id = open("/dev/null",O_RDONLY);
-//		if (id < 0) {
-//			qDebug() << "invalid socket after " << x;
-//			return 0;
-//		}
-//	}
+	for (int x=0; x < 1500; x++) {
+		int id = open("/dev/null",O_RDONLY);
+		if (id < 0) {
+			qDebug() << "invalid socket after " << x;
+			return 0;
+		}
+	}
 
 	FCGX_Init();
 
@@ -86,10 +107,7 @@ int main(int argc, char *argv[]) {
 	//is this usefull ?
 	//rc = setsockopt(socketId, SOL_SOCKET,  SO_REUSEADDR, (char *)&on, sizeof(on));
 	//int getsockopt(int sockfd, int level, int optname, void *optval,socklen_t *optlen);
-	timeval tv;
-	tv.tv_sec = 1;
-	tv.tv_usec = 0;
-	res = setsockopt(socketId, SOL_SOCKET, SO_RCVTIMEO, &tv,  sizeof(tv));
+
 
 
 	//ABSOLUTELY NOT HERE!

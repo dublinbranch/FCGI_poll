@@ -2192,7 +2192,6 @@ int FCGX_Accept_r(FCGX_Request *reqDataPtr)
          */
         if (reqDataPtr->ipcFd < 0) {
             int fail_on_intr = reqDataPtr->flags & FCGI_FAIL_ACCEPT_ON_INTR;
-
             reqDataPtr->ipcFd = OS_Accept(reqDataPtr->listen_sock, fail_on_intr, webServerAddressList);
             if (reqDataPtr->ipcFd < 0) {
                 return (errno > 0) ? (0 - errno) : -9999;

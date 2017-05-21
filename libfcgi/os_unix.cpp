@@ -793,8 +793,8 @@ int OS_Close(int fd)
 
         do 
         {
-		//the socket has been changed to allow NON BLOCKING I/O so it will read data if they are present or not and
-		//return immediately
+	//the socket has been changed to allow NON BLOCKING I/O so it will read data if they are present or not and
+	//return by itselft after a 1 s timeout
 //            FD_SET(fd, &rfds);
 //            tv.tv_sec = 2;
 //            tv.tv_usec = 0;
@@ -828,122 +828,6 @@ int OS_CloseRead(int fd)
     }
 
     return shutdown(fd, 0);
-}
-
-/*
- *--------------------------------------------------------------
- *
- * OS_DoIo --
- *
- *	This function was formerly OS_Select.  It's purpose is
- *      to pull I/O completion events off the queue and dispatch
- *      them to the appropriate place.
- *
- * Results:
- *	Returns 0.
- *
- * Side effects:
- *	Handlers are called.
- *
- *--------------------------------------------------------------
- */
-int OS_DoIo(struct timeval *tmo)
-{
-    int fd, len, selectStatus;
-    OS_AsyncProc procPtr;
-    ClientData clientData;
-    AioInfo *aioPtr;
-    fd_set readFdSetCpy;
-    fd_set writeFdSetCpy;
-
-    asyncIoInUse = TRUE;
-    FD_ZERO(&readFdSetCpy);
-    FD_ZERO(&writeFdSetCpy);
-
-    for(fd = 0; fd <= maxFd; fd++) {
-        if(FD_ISSET(fd, &readFdSet)) {
-            FD_SET(fd, &readFdSetCpy);
-        }
-        if(FD_ISSET(fd, &writeFdSet)) {
-            FD_SET(fd, &writeFdSetCpy);
-        }
-    }
-
-    /*
-     * If there were no completed events from a prior call, see if there's
-     * any work to do.
-     */
-    if(numRdPosted == 0 && numWrPosted == 0) {
-        selectStatus = select((maxFd+1), &readFdSetCpy, &writeFdSetCpy,
-                              NULL, tmo);
-        if(selectStatus < 0) {
-            exit(errno);
-	}
-
-        for(fd = 0; fd <= maxFd; fd++) {
-	    /*
-	     * Build up a list of completed events.  We'll work off of
-	     * this list as opposed to looping through the read and write
-	     * fd sets since they can be affected by a callbacl routine.
-	     */
-	    if(FD_ISSET(fd, &readFdSetCpy)) {
-	        numRdPosted++;
-		FD_SET(fd, &readFdSetPost);
-		FD_CLR(fd, &readFdSet);
-	    }
-
-            if(FD_ISSET(fd, &writeFdSetCpy)) {
-	        numWrPosted++;
-	        FD_SET(fd, &writeFdSetPost);
-		FD_CLR(fd, &writeFdSet);
-	    }
-        }
-    }
-
-    if(numRdPosted == 0 && numWrPosted == 0)
-        return 0;
-
-    for(fd = 0; fd <= maxFd; fd++) {
-        /*
-	 * Do reads and dispatch callback.
-	 */
-        if(FD_ISSET(fd, &readFdSetPost)
-	   && asyncIoTable[AIO_RD_IX(fd)].inUse) {
-
-	    numRdPosted--;
-	    FD_CLR(fd, &readFdSetPost);
-	    aioPtr = &asyncIoTable[AIO_RD_IX(fd)];
-
-	    len = read(aioPtr->fd, aioPtr->buf, aioPtr->len);
-
-	    procPtr = aioPtr->procPtr;
-	    aioPtr->procPtr = NULL;
-	    clientData = aioPtr->clientData;
-	    aioPtr->inUse = 0;
-
-	    (*procPtr)(clientData, len);
-	}
-
-        /*
-	 * Do writes and dispatch callback.
-	 */
-        if(FD_ISSET(fd, &writeFdSetPost) &&
-           asyncIoTable[AIO_WR_IX(fd)].inUse) {
-
-	    numWrPosted--;
-	    FD_CLR(fd, &writeFdSetPost);
-	    aioPtr = &asyncIoTable[AIO_WR_IX(fd)];
-
-	    len = write(aioPtr->fd, aioPtr->buf, aioPtr->len);
-
-	    procPtr = aioPtr->procPtr;
-	    aioPtr->procPtr = NULL;
-	    clientData = aioPtr->clientData;
-	    aioPtr->inUse = 0;
-	    (*procPtr)(clientData, len);
-	}
-    }
-    return 0;
 }
 
 /* 
@@ -1174,18 +1058,18 @@ static int is_af_unix_keeper(const int fd){
 
 //	//https://www.ibm.com/support/knowledgecenter/en/ssw_i5_54/rzab6/poll.htm
 //	//we are always interested only in one socket
-//	struct pollfd fds[1];
-//	memset(fds, 0 , sizeof(fds));
+	struct pollfd fds[1];
+	memset(fds, 0 , sizeof(fds));
 
-//	fds[0].fd = fd;
-//	fds[0].events = POLLIN;
-//	int timeout = (2000); //2second as before
-//	int    nfds = 1, current_size = 0, i, j;
-//	int res = poll(fds, nfds, timeout);
+	fds[0].fd = fd;
+	fds[0].events = POLLIN;
+	int timeout = (2000); //2second as before
+	int    nfds = 1, current_size = 0, i, j;
+	int res = poll(fds, nfds, timeout);
 //	//check if poll has failed ? if failed what to do ?
 
 //	//0 is timeout
-//	return res;
+	return res;
 }
 
 /*
@@ -1256,7 +1140,11 @@ int OS_Accept(int listen_sock, int fail_on_intr, const char *webServerAddrs)
                 /* No replies to outgoing data, so disable Nagle */
                 setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (char *)&set, sizeof(set));
 #endif
-
+		//Set the socket to be NONBLOCKING, so we can use read with no fear that hangs
+		timeval tv;
+		tv.tv_sec = 1;
+		tv.tv_usec = 0;
+		setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv,  sizeof(tv));
                 /* Check that the client IP address is approved */
                 if (ClientAddrOK(&sa.in, webServerAddrs))
                     break;
@@ -1265,13 +1153,17 @@ int OS_Accept(int listen_sock, int fail_on_intr, const char *webServerAddrs)
             }  /* socket >= 0 */
         }  /* for(;;) */
 
-        if (ReleaseLock(listen_sock))
+	if (ReleaseLock(listen_sock)){
             return (-1);
+	}
 
-        if (sa.in.sin_family != AF_UNIX || is_af_unix_keeper(socket))
-            break;
 
-        close(socket);
+//	if (sa.in.sin_family != AF_UNIX || is_af_unix_keeper(socket)){
+//		break;
+//	}
+	break;
+
+//        close(socket);
     }  /* while(1) - lock */
 
     return (socket);
