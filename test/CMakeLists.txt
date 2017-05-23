@@ -46,6 +46,20 @@ elseif(UNIX)
   set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -pthread -fPIC -std=gnu++1z -g")
 endif(APPLE)
 
+###########################
+# Extra compilation flags #
+###########################
+if(SANITIZE_ADDRESS_FLAG)
+    set(CMAKE_BUILD_TYPE "SANITIZE_ADDRESS ${CMAKE_BUILD_TYPE}")
+    set(CMAKE_COMPILER_FLAGS "${CMAKE_COMPILER_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+elseif(SANITIZE_UNDEFINED_FLAG)
+    set(CMAKE_BUILD_TYPE "SANITIZE_UNDEFINED ${CMAKE_BUILD_TYPE}")
+    set(CMAKE_COMPILER_FLAGS "${CMAKE_COMPILER_FLAGS} -fsanitize=undefined -fno-omit-frame-pointer")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined -fno-omit-frame-pointer")
+    set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS}  -fsanitize=undefined")
+endif()
+
 ##################################
 # building static lib under test #
 ##################################
