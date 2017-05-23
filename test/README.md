@@ -1,13 +1,13 @@
 # Testing FCGX
 
-Improved FastCGI library tests. Pay attention to its testing ports, e.g. **2005**.
+Improved FastCGI library tests. Pay attention to its testing ports, e.g. **2006**.
 
 ### NGINX
 
 Don't forget to add to your **nginx** configuration file:
 
       location /testingFCGX  {
-              fastcgi_pass   0.0.0.0:2005;
+              fastcgi_pass   0.0.0.0:2006;
               fastcgi_connect_timeout 5h;
               fastcgi_read_timeout 5h;
 

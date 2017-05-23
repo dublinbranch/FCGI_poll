@@ -1,13 +1,12 @@
 #define BOOST_TEST_MAIN
 #define BOOST_TEST_MODULE NgnixUnitTest
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <curl/curl.h>
 #include <thread>
 #include <chrono>
 #include <atomic>
-#include <cstring>
 
 // just logging something ( --log_level=message )
 #include <boost/test/unit_test.hpp>
@@ -23,15 +22,11 @@ static std::atomic<unsigned> VALUE {0};
 
 void handle_request(FCGX_Request *request) {
 	char *input;
-	unsigned value;
-	char buffer[1024];
-	std::memset(buffer, '\0', 1024);
-
 	printf("Content-Type: text/plain\r\n\r\n");
 	if ((input = get_param("QUERY_STRING")) != NULL) {
-		std::memcpy(buffer, input, 16);
-		printf(buffer); // manual test in a browser
-		if( 1 == sprintf(buffer, "?value=%u", &value) ) { VALUE.store(value); }
+		unsigned value;
+		printf(input); // manual test in a browser
+		if( 1 == sscanf(input, "value=%u", &value) ) { VALUE.store(value); }
 	}
 	printf("\n");
 }
@@ -53,24 +48,23 @@ void server() {
 	int sock;
 	FCGX_Request request;
 
-	std::this_thread::sleep_for(std::chrono::seconds(1));
-
 	FCGX_Init(); 
-	sock = FCGX_OpenSocket(":2005", 5);
+	sock = FCGX_OpenSocket(":2006", 5);
 	FCGX_InitRequest(&request, sock, 0);
 
 	// just in case 
 	VALUE.store(0);
 
-	while ( (FCGX_Accept_r(&request) >= 0) && (VALUE.load() != 1)) {
+	while (FCGX_Accept_r(&request) >= 0) {
 		handle_request(&request);
 		FCGX_Finish_r(&request);
+		if( VALUE.load() == 1 ) { break; }
 	}
 }
 
 void client() {
 
-	std::this_thread::sleep_for(std::chrono::seconds(2));
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
 	if( check_response("http://0.0.0.0/testingFCGX?value=1", CURLE_OK) ) { 
  		BOOST_TEST_MESSAGE( "Seems OK");
