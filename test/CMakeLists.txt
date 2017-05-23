@@ -88,13 +88,13 @@ if(Boost_FOUND)
  
   # main test
   set(TEST_NAME "fastcgi_test")
-  file(GLOB TEST_SOURCES test.cpp)
+  file(GLOB TEST_SOURCES nginx_test.cpp)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include)
   link_directories(${CMAKE_CURRENT_BINARY_DIR})
   add_executable(${TEST_NAME} ${TEST_SOURCES})
   add_dependencies(${TEST_NAME} ${STATIC_LIB_NAME})
-  target_link_libraries(${TEST_NAME} ${STATIC_LIB_NAME} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-  add_test(UnitTest ${TEST_NAME})
+  target_link_libraries(${TEST_NAME} ${STATIC_LIB_NAME} curl ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+  add_test(NginxUnitTest ${TEST_NAME})
 
 else()
   message(STATUS "Missing required Boost UNIT TEST framework library. Test building skipped")
