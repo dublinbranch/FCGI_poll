@@ -14,7 +14,7 @@
 
 void handle_request(FCGX_Request *request) {
 	char *value;
-/*
+
 	printf("Content-Type: text/plain\r\n\r\n");
 	if ((value = get_param("REQUEST_METHOD")) != NULL) {
 		printf("%s ", value);
@@ -28,7 +28,7 @@ void handle_request(FCGX_Request *request) {
 	if ((value = get_param("SERVER_PROTOCOL")) != NULL) {
 		printf(" %s", value);
 	}
-*/
+
 	printf("\n");
 }
 
