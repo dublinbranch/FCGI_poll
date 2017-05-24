@@ -1,6 +1,6 @@
 # Modified FastCGI library
 
-The function is_af_unix_keeper has been removed, is no more usefull because the socket is now marked as *NONBLOCKING WITH TIMEOUT*, IE after timeval amount of time the read will return the *EAGAIN* error code (so will not remain struct waiting)
+The function **is_af_unix_keeper** has been removed, is no more usefull because the socket is now marked as *NONBLOCKING WITH TIMEOUT*, IE after timeval amount of time the read will return the *EAGAIN* error code (so will not remain struct waiting)
 
 This mod allow the code to **DO NOT USE neither SELECT** (old, buggy, slow, prone to corrupt you stack if using > 1024 FD) or poll / epoll (less kernel call / context switch bla bla bla)
 
