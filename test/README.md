@@ -2,7 +2,7 @@
 
 Improved FastCGI library tests. Pay attention to its testing ports, e.g. **2006** or **9000**, just in case they are in use.
 
-There are to possible kind of test:
+There are two possible kind of tests:
 
 ### StandAlone
 
