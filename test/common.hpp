@@ -66,3 +66,13 @@ void client() {
 		SUCCESS.store(false);
 	} 
 }
+
+bool simpleQuery() {
+
+	std::thread server_thread(server);
+	std::thread client_thread(client);
+	server_thread.join();
+	client_thread.join();
+
+	return SUCCESS.load();
+}
