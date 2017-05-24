@@ -35,14 +35,14 @@ fcgi_streambuf::fcgi_streambuf(FCGX_Stream * fs, char * b, int bs)
 {
     init(fs, b, bs);
 }
-    
+
 fcgi_streambuf::fcgi_streambuf(char_type * b, streamsize bs)
 {
     init(0, b, bs);
 }
-    
-fcgi_streambuf::fcgi_streambuf(FCGX_Stream * fs) 
-{ 
+
+fcgi_streambuf::fcgi_streambuf(FCGX_Stream * fs)
+{
     init(fs, 0, 0);
 }
 
@@ -57,25 +57,25 @@ void fcgi_streambuf::init(FCGX_Stream * fs, char_type * b, streamsize bs)
     this->fcgx = fs;
     this->buf = 0;
     this->bufsize = 0;
-    setbuf(b, bs);    
+    setbuf(b, bs);
 }
 
 int fcgi_streambuf::overflow(int c)
 {
     if (this->bufsize)
     {
-        int plen = pptr() - pbase();
+	int plen = pptr() - pbase();
 
-        if (plen) 
-        {
-            if (FCGX_PutStr(pbase(), plen, this->fcgx) != plen) return EOF;
-            pbump(-plen);
-        }
+	if (plen)
+	{
+	    if (FCGX_PutStr(pbase(), plen, this->fcgx) != plen) return EOF;
+	    pbump(-plen);
+	}
     }
 
-    if (c != EOF) 
+    if (c != EOF)
     {
-        if (FCGX_PutChar(c, this->fcgx) != c) return EOF;
+	if (FCGX_PutChar(c, this->fcgx) != c) return EOF;
     }
 
     return 0;
@@ -90,32 +90,32 @@ int fcgi_streambuf::sync()
 }
 
 // uflow() removes the char, underflow() doesn't
-int fcgi_streambuf::uflow() 
+int fcgi_streambuf::uflow()
 {
     int rv = underflow();
     if (this->bufsize) gbump(1);
     return rv;
 }
-				
+
 // Note that the expected behaviour when there is no buffer varies
 int fcgi_streambuf::underflow()
 {
     if (this->bufsize)
     {
-        if (in_avail() == 0)
-        {
-            int glen = FCGX_GetStr(eback(), this->bufsize, this->fcgx);
-            if (glen <= 0) return EOF;
+	if (in_avail() == 0)
+	{
+	    int glen = FCGX_GetStr(eback(), this->bufsize, this->fcgx);
+	    if (glen <= 0) return EOF;
 
-            setg(eback(), eback(), eback() + glen);
-        }
+	    setg(eback(), eback(), eback() + glen);
+	}
 
-        return (unsigned char) *gptr();       
+	return (unsigned char) *gptr();
     }
     else
     {
-        return FCGX_GetChar(this->fcgx);
-    } 
+	return FCGX_GetChar(this->fcgx);
+    }
 }
 
 void fcgi_streambuf::reset(void)
@@ -142,31 +142,31 @@ std::streambuf * fcgi_streambuf::setbuf(char_type * b, streamsize bs)
 }
 
 int fcgi_streambuf::attach(FCGX_Stream * fs)
-{ 
+{
     this->fcgx = fs;
 
     if (this->bufsize)
     {
-        reset();
+	reset();
     }
 
     return 0;
 }
 
-streamsize fcgi_streambuf::xsgetn(char_type * s, streamsize n) 
+streamsize fcgi_streambuf::xsgetn(char_type * s, streamsize n)
 {
     if (n > INT_MAX) return 0;
-    return (this->bufsize) 
-        ? streambuf::xsgetn(s, n) 
-        : (streamsize) FCGX_GetStr((char *) s, (int) n, this->fcgx);
+    return (this->bufsize)
+	? streambuf::xsgetn(s, n)
+	: (streamsize) FCGX_GetStr((char *) s, (int) n, this->fcgx);
 }
-   
-streamsize fcgi_streambuf::xsputn(const char_type * s, streamsize n) 
+
+streamsize fcgi_streambuf::xsputn(const char_type * s, streamsize n)
 {
     if (n > INT_MAX) return 0;
-    return (this->bufsize) 
-        ? streambuf::xsputn(s, n) 
-        : (streamsize) FCGX_PutStr((char *) s, (int) n, this->fcgx);
+    return (this->bufsize)
+	? streambuf::xsputn(s, n)
+	: (streamsize) FCGX_PutStr((char *) s, (int) n, this->fcgx);
 }
 
 // deprecated

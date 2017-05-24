@@ -11,19 +11,20 @@ CONFIG -= app_bundle
 #QMAKE_CFLAGS+= -fsanitize=address -fno-omit-frame-pointer
 #QMAKE_LFLAGS+= -fsanitize=address
 
-INCLUDEPATH += /home/swap/fcgi/include/
+INCLUDEPATH += /home/roy/Public/FCGI_poll/include/
 
 TEMPLATE = app
 
 SOURCES += main.cpp \
-    libfcgi/fcgio.cpp \
     libfcgi/fcgi_stdio.c \
     libfcgi/fcgiapp.c \
-    libfcgi/os_unix.cpp
+    libfcgi/os_unix.c \
+    libfcgi/fcgio.cpp
+
 
 HEADERS += \
     include/fastcgi.h \
     include/fcgi_stdio.h \
     include/fcgiapp.h \
-    include/fcgio.h \
-    include/fcgios.h
+    include/fcgios.h \
+    include/fcgio.h

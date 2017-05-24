@@ -43,10 +43,6 @@ static const char rcsid[] = "$Id: os_unix.c,v 1.37 2002/03/05 19:14:49 robs Exp 
 #include <sys/un.h>
 #include <signal.h>
 
-#include <sys/poll.h>
-#include <atomic>
-#include <thread>
-
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
@@ -459,34 +455,16 @@ int OS_FcgiConnect(char *bindPath)
  *--------------------------------------------------------------
  */
 int OS_Read(int fd, char * buf, size_t len) {
-	static std::atomic<int> ok{0};
-	static std::atomic<int> retry{0};
-    if (shutdownNow) return -1;
-    auto byte = read(fd, buf, len);
-    if(byte > 0){
-	    ok++;
-	    return byte;
-    }
-
-    while(byte < 0){
-	    retry++;
-	    //printf("no byte to read ?\n");
-	    //wait a moment and retry ...
-	    //this is no good at all, we really have to wait for a moment -.-
-	    //std::this_thread::yield();
-
-	    struct pollfd fds[1];
-	    memset(fds, 0 , sizeof(fds));
-
-	    fds[0].fd = fd;
-	    fds[0].events = POLLIN;
-	    int timeout = (1); //1ms ?
-	    int nfds = 0;
-	    int res = poll(fds, nfds, timeout);
-
-	    byte = read(fd, buf, len);
-    }
-    return byte;
+	if (shutdownNow) return -1;
+	auto byte = read(fd, buf, len);
+	/**
+		The FD has been marked with a timeout, so read can not block
+	 */
+	if(byte > 0){
+		return byte;
+	}else{
+		return -1;
+	}
 }
 
 /*
@@ -1029,48 +1007,48 @@ static int is_reasonable_accept_errno (const int error)
  * may _cause_ the problem when there is a very high demand). At any rate,
  * this is better than perma-blocking.
  */
-static int is_af_unix_keeper(const int fd){
-//    struct timeval tval = { READABLE_UNIX_FD_DROP_DEAD_TIMEVAL };
-//    fd_set read_fds;
+//static int is_af_unix_keeper(const int fd){
+////    struct timeval tval = { READABLE_UNIX_FD_DROP_DEAD_TIMEVAL };
+////    fd_set read_fds;
 
-//    FD_ZERO(&read_fds);
-//    FD_SET(fd, &read_fds);
+////    FD_ZERO(&read_fds);
+////    FD_SET(fd, &read_fds);
 
-//    return select(fd + 1, &read_fds, NULL, NULL, &tval) >= 0 && FD_ISSET(fd, &read_fds);
+////    return select(fd + 1, &read_fds, NULL, NULL, &tval) >= 0 && FD_ISSET(fd, &read_fds);
 
 
-	//http://stackoverflow.com/a/2917911/1040618 is not ok!
-	//because may be the nginx has not yet sent nothing, so we REALLY have to wait for a bit...
-	//https://www.percona.com/doc/percona-server/5.5/performance/remove_fcntl_excessive_calls.html
-	//so do not use fcntl in a spam mode
-//	int flags;
-//	flags = fcntl(fd, F_GETFL, 0);
-//	if (-1 == flags){
-//		perror("noooo!");
-//	   return -1;
-//	}
-//	int success = fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-//	if (-1 == success){
-//		perror("noooo!");
-//	   return -1;
-//	}
-//	return 1;
+//	//http://stackoverflow.com/a/2917911/1040618 is not ok!
+//	//because may be the nginx has not yet sent nothing, so we REALLY have to wait for a bit...
+//	//https://www.percona.com/doc/percona-server/5.5/performance/remove_fcntl_excessive_calls.html
+//	//so do not use fcntl in a spam mode
+////	int flags;
+////	flags = fcntl(fd, F_GETFL, 0);
+////	if (-1 == flags){
+////		perror("noooo!");
+////	   return -1;
+////	}
+////	int success = fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+////	if (-1 == success){
+////		perror("noooo!");
+////	   return -1;
+////	}
+////	return 1;
 
-//	//https://www.ibm.com/support/knowledgecenter/en/ssw_i5_54/rzab6/poll.htm
-//	//we are always interested only in one socket
-	struct pollfd fds[1];
-	memset(fds, 0 , sizeof(fds));
+////	//https://www.ibm.com/support/knowledgecenter/en/ssw_i5_54/rzab6/poll.htm
+////	//we are always interested only in one socket
+//	struct pollfd fds[1];
+//	memset(fds, 0 , sizeof(fds));
 
-	fds[0].fd = fd;
-	fds[0].events = POLLIN;
-	int timeout = (2000); //2second as before
-	int    nfds = 1, current_size = 0, i, j;
-	int res = poll(fds, nfds, timeout);
-//	//check if poll has failed ? if failed what to do ?
+//	fds[0].fd = fd;
+//	fds[0].events = POLLIN;
+//	int timeout = (2000); //2second as before
+//	int    nfds = 1, current_size = 0, i, j;
+//	int res = poll(fds, nfds, timeout);
+////	//check if poll has failed ? if failed what to do ?
 
-//	//0 is timeout
-	return res;
-}
+////	//0 is timeout
+//	return res;
+//}
 
 /*
  *----------------------------------------------------------------------
@@ -1141,7 +1119,7 @@ int OS_Accept(int listen_sock, int fail_on_intr, const char *webServerAddrs)
                 setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (char *)&set, sizeof(set));
 #endif
 		//Set the socket to be NONBLOCKING, so we can use read with no fear that hangs
-		timeval tv;
+		struct timeval tv;
 		tv.tv_sec = 1;
 		tv.tv_usec = 0;
 		setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv,  sizeof(tv));
