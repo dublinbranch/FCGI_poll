@@ -762,12 +762,12 @@ int OS_Close(int fd)
 
     if (shutdown(fd, 1) == 0)
     {
-        struct timeval tv;
-        fd_set rfds;
-        int rv;
+        //struct timeval tv;
+        //fd_set rfds;
+        //int rv;
         char trash[1024];
 
-        FD_ZERO(&rfds);
+        //FD_ZERO(&rfds);
 
         do 
         {
@@ -778,7 +778,7 @@ int OS_Close(int fd)
 //            tv.tv_usec = 0;
 //            rv = select(fd + 1, &rfds, NULL, NULL, &tv);
         }
-        while (rv > 0 && read(fd, trash, sizeof(trash)) > 0);
+        while (/*rv > 0 &&*/ read(fd, trash, sizeof(trash)) > 0);
     }
 
     return close(fd);
