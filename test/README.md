@@ -1,15 +1,14 @@
-# Testing FCGX
+# Modified FastCGI library
 
-Improved FastCGI library tests. Pay attention to its testing ports, e.g. **2006** or **9000**, just in case they are in use.
+The function is_af_unix_keeper has been removed, is no more usefull because the socket is now marked as *NONBLOCKING WITH TIMEOUT*, IE after timeval amount of time the read will return the *EAGAIN* error code (so will not remain struct waiting)
 
-There are two possible kind of tests:
+This mod allow the code to **DO NOT USE neither SELECT** (old, buggy, slow, prone to corrupt you stack if using > 1024 FD) or poll / epoll (less kernel call / context switch bla bla bla)
 
-The function is_af_unix_keeper has been removed, is no more usefull because the socket is now marked as NONBLOCKING WITH TIMEOUT, IE after timeval amount of time the read will return the EAGAIN error code (so will not remain struct waiting)
+As well it was removed the **select inside OS_Close** (again also here the read do not block forever)
 
-This mod allow the code to DO NOT USE neither SELECT (old, buggy, slow, prone to corrupt you stack if using > 1024 FD) or poll / epoll (less kernel call / context switch bla bla bla)
+## Testing FCGX
 
-This mod allow us also to remove select inside OS_Close (again also here the read do not block forever)
-
+Pay attention to its testing ports, e.g. **2006** or **9000**, just in case they are in use. There are two possible kind of tests:
 
 ### StandAlone
 
