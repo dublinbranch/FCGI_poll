@@ -1,12 +1,43 @@
 # Testing FCGX
 
-Improved FastCGI library tests. Pay attention to its testing ports, e.g. **2006**.
+Improved FastCGI library tests. Pay attention to its testing ports, e.g. **2006** or **9000**, just in case they are in use.
+
+There are to possible kind of test:
+
+### StandAlone
+
+In order to build tests and running them, use typical command:
+
+	rm -rf build && mkdir -p build && cd build && cmake .. && make && ctest
+
+Don't forget to make golang binary utility **[fastcgi-server](https://github.com/beberlei/fastcgi-serve)** accessible (building with *cmake* will try to install) to be internally invoked by this test:
+
+	./standalone_fastcgi_test --log_level=message -- --help
+
+	Usage ./standalone_fastcgi_test [--log_level=message] -- [--help] [--fast==webserver_location=http webserver automatically launched by this test] [--fastcgi_server=ip for testing server] [--fastcgi_port=port for testing server] [--tool=fastcgi-serve full path if needed]
+
+	All those commandline arguments are optional provided golang testing binary fastcgi-serve tool is properly installed (done by cmake or by 'go get github.com/beberlei/fastcgi-serve'):
+
+	  By default, --websever_location=0.0.0.0:9000
+
+	  By default, --fastcgi_server=0.0.0.0
+
+	  By default, --fastcgi_port=2006
+
+	  By default, --tool=fastcgi-serve
+
+	So fastcgi-serve internally usage invoked by this test will be:
+
+	    fastcgi-serve --listen=0.0.0.0:9000 --server=0.0.0.0 --server-port=2006
+
+	Further info at https://github.com/beberlei/fastcgi-serve
+
+
+### NGINX
 
 In order to build tests and running them, use typical command:
 
 	rm -rf build && mkdir -p build && cd build && cmake .. -DModifiedFastCGI_NGINX=1 && make && ctest
-
-### NGINX
 
 Don't forget to add to your **nginx** configuration file if you choose using NGINX as FastCGI server provider. You can invoke its help for further info:
 
@@ -16,7 +47,7 @@ Don't forget to add to your **nginx** configuration file if you choose using NGI
 
         All those commandline arguments are optional provided NGINX is properly configured and running:
 
-          By default, --nginx_location="http://0.0.0.0/testingFCGX
+	  By default, --nginx_location=http://0.0.0.0/testingFCGX
 
           By default, --fastcgi_server=0.0.0.0
 
