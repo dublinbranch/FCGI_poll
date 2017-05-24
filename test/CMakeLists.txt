@@ -99,16 +99,35 @@ if(Boost_FOUND)
  
   # enable CMake tests
   enable_testing()
- 
-  # main test
-  set(TEST_NAME "fastcgi_test")
-  file(GLOB TEST_SOURCES nginx_test.cpp)
-  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include)
-  link_directories(${CMAKE_CURRENT_BINARY_DIR})
-  add_executable(${TEST_NAME} ${TEST_SOURCES})
-  add_dependencies(${TEST_NAME} ${STATIC_LIB_NAME})
-  target_link_libraries(${TEST_NAME} ${STATIC_LIB_NAME} curl ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-  add_test(NginxUnitTest ${TEST_NAME})
+
+  # Configuration for fastcgi testing server: https://github.com/beberlei/fastcgi-serve
+  #
+  # The following settings are available:
+  #
+  #    --document-root - The document root to serve files from (default: current working directory)
+  #    --listen - The webserver bind address to listen to (default:127.0.0.1)
+  #    --server - The FastCGI server to listen to
+  #    --server-port The FastCGI server port to listen to
+  #    --index The default script to call when request path cannot be served with an existing file
+
+  # Check out libraries needed
+  add_custom_target(${TEST_TARGET}_libs
+	COMMAND ${LOCAL_GO_COMPILER} get "github.com/beberlei/fastcgi-serve"
+  )
+
+  if(${LOCAL_CMAKE_PROJECT_NAME}_NGINX)
+	# main test
+	set(TEST_NAME "nginx_fastcgi_test")
+	file(GLOB TEST_SOURCES nginx_test.cpp)
+	include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include)
+	link_directories(${CMAKE_CURRENT_BINARY_DIR})
+	add_executable(${TEST_NAME} ${TEST_SOURCES})
+	add_dependencies(${TEST_NAME} ${STATIC_LIB_NAME})
+	target_link_libraries(${TEST_NAME} ${STATIC_LIB_NAME} curl ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+	add_test(NginxUnitTest ${TEST_NAME})
+  else(${LOCAL_CMAKE_PROJECT_NAME}_NGINX)
+
+  endif(${LOCAL_CMAKE_PROJECT_NAME}_NGINX)
 
 else()
   message(STATUS "Missing required Boost UNIT TEST framework library. Test building skipped")
