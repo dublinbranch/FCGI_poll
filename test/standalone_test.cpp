@@ -23,3 +23,9 @@ BOOST_AUTO_TEST_CASE( test001 ) {
  BOOST_CHECK( simpleQuery() );
 }
 
+BOOST_AUTO_TEST_CASE( test002 ) {
+
+ BOOST_TEST_MESSAGE( "\ntest002: Long query");
+ BOOST_CHECK( longQuery() );
+}
+
