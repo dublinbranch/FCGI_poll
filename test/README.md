@@ -47,7 +47,7 @@ Don't forget to add to your **nginx** configuration file if you choose using NGI
 
         All those commandline arguments are optional provided NGINX is properly configured and running:
 
-	  By default, --nginx_location=http://0.0.0.0/testingFCGX
+          By default, --nginx_location=http://0.0.0.0/testingFCGX
 
           By default, --fastcgi_server=0.0.0.0
 
