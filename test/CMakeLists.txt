@@ -140,7 +140,7 @@ if(Boost_FOUND)
 		include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include)
 		link_directories(${CMAKE_CURRENT_BINARY_DIR})
 		add_executable(${TEST_NAME} ${TEST_SOURCES})
-		add_dependencies(${TEST_NAME} ${STATIC_LIB_NAME})
+		add_dependencies(${TEST_NAME} ${STATIC_LIB_NAME} ${TEST_TARGET}_libs)
 		target_link_libraries(${TEST_NAME} ${STATIC_LIB_NAME} curl ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 		add_test(StandAloneUnitTest ${TEST_NAME})
 
