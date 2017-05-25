@@ -59,7 +59,7 @@ R"( [--log_level=message] -- [--help] [--fast==webserver_location=http webserver
     std::string found = exec(std::string{"which " + tool}.c_str());
     if( std::string::npos != found.find("which: no ") ) {
 	BOOST_TEST_MESSAGE( "Not found " << tool << ". Resorting to hardcoded alternative " << ALTERNATIVE_PATH << "\n" );
-	tool = ALTERNATIVE_PATH;
+	tool = ALTERNATIVE_PATH + TOOL;
 	found = exec(std::string{"which " + tool}.c_str());
 	if( std::string::npos != found.find("which: no ") ) {
 		BOOST_TEST_MESSAGE( "Not found alternative " << tool << " either. Aborting execution\n" );
@@ -98,7 +98,7 @@ private:
   char **argv {nullptr};
   std::string pid {""};
   const std::string TOOL{"fastcgi-serve"};
-  const std::string ALTERNATIVE_PATH{"/mnt/megaswap/compilationDep/tools/fastcgi_serve_tool/fastcgi-serve"};
+  const std::string ALTERNATIVE_PATH{"/mnt/megaswap/compilationDep/tools/fastcgi_serve_tool/"};
 
   Param commandline(const int argc = 0, char** argv = nullptr) const
   {
