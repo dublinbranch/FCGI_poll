@@ -102,8 +102,9 @@ if(Boost_FOUND)
 
   if(${LOCAL_CMAKE_PROJECT_NAME}_NGINX)
 
-	# main test based on NGINX
 	set(TEST_NAME "nginx_fastcgi_test")
+
+	# main test based on NGINX
 	file(GLOB TEST_SOURCES nginx_test.cpp)
 	include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include)
 	link_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -129,18 +130,19 @@ if(Boost_FOUND)
 
 	if(EXISTS ${LOCAL_GO_COMPILER})
 
+		set(TEST_NAME "standalone_fastcgi_test")
+
 		# Check out libraries needed
-		add_custom_target(${TEST_TARGET}_libs
+		add_custom_target(${TEST_NAME}_libs
 			COMMAND ${LOCAL_GO_COMPILER} get "github.com/beberlei/fastcgi-serve"
 		)
 
 		# main test based on fastcgi-serve
-		set(TEST_NAME "standalone_fastcgi_test")
 		file(GLOB TEST_SOURCES standalone_test.cpp)
 		include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include)
 		link_directories(${CMAKE_CURRENT_BINARY_DIR})
 		add_executable(${TEST_NAME} ${TEST_SOURCES})
-		add_dependencies(${TEST_NAME} ${STATIC_LIB_NAME} ${TEST_TARGET}_libs)
+		add_dependencies(${TEST_NAME} ${STATIC_LIB_NAME} ${TEST_NAME}_libs)
 		target_link_libraries(${TEST_NAME} ${STATIC_LIB_NAME} curl ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 		add_test(StandAloneUnitTest ${TEST_NAME})
 
