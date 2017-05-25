@@ -14,7 +14,19 @@ Pay attention to its testing ports, e.g. **2006** or **9000**, just in case they
 
 In order to build tests and running them, use typical command:
 
-	rm -rf build && mkdir -p build && cd build && cmake .. && make && ctest
+#### for humans
+
+Choose the number of threads for *make -j XXXX*:
+
+	rm -rf build && mkdir -p build && cd build && cmake .. && make -j6 && ctest
+
+#### for machines
+
+Supposedly faster and autochosen number of threads:
+
+	rm -rf build && mkdir -p build && cd build && cmake .. -G "Ninja" && ninja && ctest
+
+#### Hints
 
 Don't forget to make golang binary utility **[fastcgi-server](https://github.com/beberlei/fastcgi-serve)** accessible (building with *cmake* will try to install) to be internally invoked by this test:
 
@@ -43,7 +55,19 @@ Don't forget to make golang binary utility **[fastcgi-server](https://github.com
 
 In order to build tests and running them, use typical command:
 
-	rm -rf build && mkdir -p build && cd build && cmake .. -DModifiedFastCGI_NGINX=1 && make && ctest
+#### for humans
+
+Choose the number of threads for *make -j XXXX*:
+
+	rm -rf build && mkdir -p build && cd build && cmake .. -DModifiedFastCGI_NGINX=1 && make -j6 && ctest
+
+#### for machines
+
+Supposedly faster and autochosen number of threads:
+
+	rm -rf build && mkdir -p build && cd build && cmake .. -G "Ninja" -DModifiedFastCGI_NGINX=1 && ninja && ctest
+
+#### Hints
 
 Don't forget to add to your **nginx** configuration file if you choose using NGINX as FastCGI server provider. You can invoke its help for further info:
 
