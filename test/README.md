@@ -32,24 +32,27 @@ Don't forget to make golang binary utility **[fastcgi-server](https://github.com
 
 	./standalone_fastcgi_test --log_level=message -- --help
 
-	Usage ./standalone_fastcgi_test [--log_level=message] -- [--help] [--fast==webserver_location=http webserver automatically launched by this test] [--fastcgi_server=ip for testing server] [--fastcgi_port=port for testing server] [--tool=fastcgi-serve full path if needed]
+        Usage ./standalone_fastcgi_test [--log_level=message] -- [--help] [--webserver0_location=http webserver automatically launched by this test] [--webserver1_location=http webserver automatically launched by this test] [--fastcgi_server=ip for testing server] [--fastcgi0_port=port for testing server] [--fastcgi1_port=port for testing server] [--tool=fastcgi-serve full path if needed]
 
-	All those commandline arguments are optional provided golang testing binary fastcgi-serve tool is properly installed (done by cmake or by 'go get github.com/beberlei/fastcgi-serve'):
+        All those commandline arguments are optional provided golang testing binary fastcgi-serve tool is properly installed (done by cmake or by 'go get github.com/beberlei/fastcgi-serve'):
 
-	  By default, --websever_location=0.0.0.0:9000
+          By default, --websever0_location=0.0.0.0:9000
 
-	  By default, --fastcgi_server=0.0.0.0
+          By default, --websever1_location=0.0.0.0:9001
 
-	  By default, --fastcgi_port=2006
+          By default, --fastcgi_server=0.0.0.0
 
-	  By default, --tool=fastcgi-serve
+          By default, --fastcgi0_port=2006
 
-	So fastcgi-serve internally usage invoked by this test will be:
+          By default, --fastcgi1_port=2007
 
-	    fastcgi-serve --listen=0.0.0.0:9000 --server=0.0.0.0 --server-port=2006
+          By default, --tool=fastcgi-serve
 
-	Further info at https://github.com/beberlei/fastcgi-serve
+        So fastcgi-serve internally usage invoked by this test will be:
 
+            fastcgi-serve --listen=0.0.0.0:9000 --server=0.0.0.0 --server-port=2006
+
+        Further info at https://github.com/beberlei/fastcgi-serve
 
 ### NGINX
 

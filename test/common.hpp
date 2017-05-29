@@ -12,9 +12,11 @@
 #include <curl/curl.h>
 #include "fcgiapp.h"
 
-extern std::string webserverLocation;
+extern std::string webserver0Location;
+extern std::string webserver1Location;
 extern std::string fastcgiServer;
-extern std::string fastcgiPort;
+extern std::string fastcgi0Port;
+extern std::string fastcgi1Port;
 
 ///////////// hello world //////////////////
 
@@ -50,7 +52,7 @@ void server() {
 	FCGX_Request request;
 
 	FCGX_Init(); 
-	sock = FCGX_OpenSocket((fastcgiServer + ":" + fastcgiPort).c_str(), 5);
+	sock = FCGX_OpenSocket((fastcgiServer + ":" + fastcgi0Port).c_str(), 5);
 	FCGX_InitRequest(&request, sock, 0);
 
 	// just in case 
@@ -67,7 +69,7 @@ void client() {
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-	if( check_response((webserverLocation + "?value=1").c_str(), CURLE_OK) ) {
+	if( check_response((webserver0Location + "?value=1").c_str(), CURLE_OK) ) {
  		BOOST_TEST_MESSAGE( "Seems OK");
 		SUCCESS.store(true);
 	} else { 
@@ -89,15 +91,13 @@ bool simpleQuery() {
 ///////////////// long query //////////////////////
 
 static constexpr const size_t N=10000; // long query
-static std::mutex mutex_;
+
+static std::atomic<bool> LONG_SUCCESS {false};
+static std::atomic<bool> LONG_VALUE {false};
 
 // long query request
-static unsigned char request_buffer[N];
+static char request_buffer[N];
 char request_str[N];
-
-// long query response
-static unsigned char response_buffer[N];
-char response_str[N];
 
 void handle_long_request(FCGX_Request *request) {
 	char *input;
@@ -106,8 +106,7 @@ void handle_long_request(FCGX_Request *request) {
 		char value[N];
 		FCGX_FPrintF(request->out, input); // manual test in a browser
 		{
-		    std::lock_guard<std::mutex> lock(mutex_);
-		    if( 1 == sscanf(input, "long=%s", &response_str) ) { ; }
+		    if( 1 == sscanf(input, "long=%s", &value) ) { LONG_VALUE.store(std::string{request_buffer} == std::string{value}); }
 		}
 	}
 	FCGX_FPrintF(request->out, "\n");
@@ -120,7 +119,7 @@ bool check_long_response(const char* const query, const CURLcode expected) {
   CURLcode res;
   curl_easy_setopt(curl, CURLOPT_URL, query);
   res = curl_easy_perform(curl);
-  success = (res == expected) && (VALUE.load() == 1);
+  success = ((res == expected) && LONG_VALUE.load());
   curl_easy_cleanup(curl);
  }
  return success;
@@ -131,16 +130,16 @@ void long_server() {
 	FCGX_Request request;
 
 	FCGX_Init();
-	sock = FCGX_OpenSocket((fastcgiServer + ":" + fastcgiPort).c_str(), 5);
+	sock = FCGX_OpenSocket((fastcgiServer + ":" + fastcgi1Port).c_str(), 5);
 	FCGX_InitRequest(&request, sock, 0);
 
 	// just in case
-	VALUE.store(0);
+	LONG_VALUE.store(false);
 
 	while (FCGX_Accept_r(&request) >= 0) {
-		handle_request(&request);
+		handle_long_request(&request);
 		FCGX_Finish_r(&request);
-		if( VALUE.load() == 1 ) { break; }
+		if( LONG_VALUE.load() ) { break; }
 	}
 }
 
@@ -148,12 +147,10 @@ void long_client() {
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-	if( check_response((webserverLocation + "?value=1").c_str(), CURLE_OK) ) {
-		BOOST_TEST_MESSAGE( "Seems OK");
-		SUCCESS.store(true);
+	if( check_long_response((webserver1Location + "?long=" + std::string(request_buffer)).c_str(), CURLE_OK) ) {
+		LONG_SUCCESS.store(true);
 	} else {
-		BOOST_TEST( "Failed FCGX" );
-		SUCCESS.store(false);
+		LONG_SUCCESS.store(false);
 	}
 }
 
@@ -161,10 +158,15 @@ bool longQuery() {
 
 	// random long request & response
 	std::random_device r;
-	std::seed_seq seed0{ r(), r(), r(), r(), r(), r(), r(), r()};
-	std::generate_n(request_buffer, N, std::bind(std::uniform_int_distribution<>(0, UCHAR_MAX), std::mt19937(seed0)));
-	std::seed_seq seed1{ r(), r(), r(), r(), r(), r(), r(), r()};
-	std::generate_n(response_buffer, N, std::bind(std::uniform_int_distribution<>(0, UCHAR_MAX), std::mt19937(seed1)));
+	std::seed_seq seed{ r(), r(), r(), r(), r(), r(), r(), r()};
+	std::generate_n(request_buffer, N, std::bind(std::uniform_int_distribution<>('A', 'Z'), std::mt19937(seed)));
 
-	return (0 != std::memcmp(request_buffer, response_buffer, N));
+	std::thread server_thread(long_server);
+	std::thread client_thread(long_client);
+	server_thread.join();
+	client_thread.join();
+
+	return LONG_SUCCESS.load();
+
+	//return true;
 }
