@@ -16,6 +16,8 @@ std::string fastcgiServer {"0.0.0.0"};
 std::string fastcgi0Port {"2006"};
 std::string fastcgi1Port {"2007"};
 
+const size_t N = 10000;
+
 // basically commandline arguments for previous variables
 BOOST_GLOBAL_FIXTURE( GlobalInit );
 

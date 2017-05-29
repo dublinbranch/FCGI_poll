@@ -17,6 +17,9 @@ extern std::string webserver1Location;
 extern std::string fastcgiServer;
 extern std::string fastcgi0Port;
 extern std::string fastcgi1Port;
+extern const size_t N;
+
+static constexpr const size_t DELAY {100};
 
 ///////////// hello world //////////////////
 
@@ -67,13 +70,11 @@ void server() {
 
 void client() {
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	std::this_thread::sleep_for(std::chrono::milliseconds(DELAY));
 
 	if( check_response((webserver0Location + "?value=1").c_str(), CURLE_OK) ) {
- 		BOOST_TEST_MESSAGE( "Seems OK");
 		SUCCESS.store(true);
 	} else { 
-		BOOST_TEST( "Failed FCGX" ); 
 		SUCCESS.store(false);
 	} 
 }
@@ -90,14 +91,11 @@ bool simpleQuery() {
 
 ///////////////// long query //////////////////////
 
-static constexpr const size_t N=10000; // long query
-
 static std::atomic<bool> LONG_SUCCESS {false};
 static std::atomic<bool> LONG_VALUE {false};
 
 // long query request
-static char request_buffer[N];
-char request_str[N];
+static char request_buffer[USHRT_MAX]; // 65535
 
 void handle_long_request(FCGX_Request *request) {
 	char *input;
@@ -145,7 +143,7 @@ void long_server() {
 
 void long_client() {
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	std::this_thread::sleep_for(std::chrono::milliseconds(DELAY));
 
 	if( check_long_response((webserver1Location + "?long=" + std::string(request_buffer)).c_str(), CURLE_OK) ) {
 		LONG_SUCCESS.store(true);
