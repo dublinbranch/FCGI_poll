@@ -76,19 +76,24 @@ Don't forget to add to your **nginx** configuration file if you choose using NGI
 
         ./nginx_fastcgi_test --log_level=message -- --help
 
-        Usage ./nginx_fastcgi_test [--log_level=message] -- [--help] [--nginx_location=NGINX configured location at nginx.conf] [--fastcgi_server=ip for testing server] [--fastcgi_port=port for testing server]
+        Usage ./nginx_fastcgi_test [--log_level=message] -- [--help] [--nginx0_location=NGINX configured location at nginx.conf] [--nginx1_location=NGINX configured location at nginx.conf] [--fastcgi_server=ip for testing server] [--fastcgi0_port=port for testing server] [--fastcgi1_port=port for testing server]
+
 
         All those commandline arguments are optional provided NGINX is properly configured and running:
 
-          By default, --nginx_location=http://0.0.0.0/testingFCGX
+          By default, --nginx0_location=http://0.0.0.0/testingFCGX0
+
+          By default, --nginx1_location=http://0.0.0.0/testingFCGX1
 
           By default, --fastcgi_server=0.0.0.0
 
-          By default, --fastcgi_port=2006
+          By default, --fastcgi0_port=2006
+
+          By default, --fastcgi1_port=2007
 
         Example of NGINX configuration:
 
-            location /testingFCGX  {
+            location /testingFCGX0  {
 
                     fastcgi_pass   0.0.0.0:2006;
                     fastcgi_connect_timeout 5h;
@@ -111,4 +116,29 @@ Don't forget to add to your **nginx** configuration file if you choose using NGI
                     fastcgi_param HTTP_REFERER        $http_referer;
                     fastcgi_param SCHEME              $scheme;
               }
+
+             location /testingFCGX1  {
+
+                    fastcgi_pass   0.0.0.0:2007;
+                    fastcgi_connect_timeout 5h;
+                    fastcgi_read_timeout 5h;
+
+                    fastcgi_param  QUERY_STRING       $query_string;
+                    fastcgi_param  REQUEST_METHOD     $request_method;
+                    fastcgi_param  CONTENT_TYPE       $content_type;
+                    fastcgi_param  CONTENT_LENGTH     $content_length;
+                    fastcgi_param  REQUEST            $request;
+                    fastcgi_param  REQUEST_BODY       $request_body;
+                    fastcgi_param  REQUEST_URI        $request_uri;
+                    fastcgi_param  DOCUMENT_URI       $document_uri;
+                    fastcgi_param  DOCUMENT_ROOT      $document_root;
+                    fastcgi_param  SERVER_PROTOCOL    $server_protocol;
+                    fastcgi_param  REMOTE_ADDR        $remote_addr;
+                    fastcgi_param  REMOTE_PORT        $remote_port;
+                    fastcgi_param  SERVER_ADDR        $server_addr;
+                    fastcgi_param  SERVER_PORT        $server_port;
+                    fastcgi_param HTTP_REFERER        $http_referer;
+                    fastcgi_param SCHEME              $scheme;
+              }
+
 
