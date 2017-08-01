@@ -131,7 +131,7 @@ message(STATUS "${LOCAL_CMAKE_PROJECT_NAME} shared library linker flags: ${CMAKE
 # Create the library #
 ######################
 
-set(STATIC_LIB_NAME "fcgi")
+set(STATIC_LIB_NAME "fcgi_poll")
 file(GLOB MODIFIED_FASTCGI_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/libfcgi/*.c*)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_library(${STATIC_LIB_NAME} ${MODIFIED_FASTCGI_SOURCES})
