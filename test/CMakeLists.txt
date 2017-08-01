@@ -65,7 +65,7 @@ endif()
 ##################################
 # building static lib under test #
 ##################################
-set(STATIC_LIB_NAME "fgci")
+set(STATIC_LIB_NAME "fcgi")
 file(GLOB MODIFIED_FASTCGI_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../libfcgi/*.c*)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include)
 add_library(${STATIC_LIB_NAME} ${MODIFIED_FASTCGI_SOURCES})
