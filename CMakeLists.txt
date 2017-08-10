@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 set(LOCAL_CMAKE_PROJECT_NAME FCGI_poll)
-project(${LOCAL_CMAKE_PROJECT_NAME} CXX)
+project(${LOCAL_CMAKE_PROJECT_NAME} C CXX)
 
 #########################################################
 # Helper to choose libraries when several are available #
@@ -131,12 +131,23 @@ message(STATUS "${LOCAL_CMAKE_PROJECT_NAME} shared library linker flags: ${CMAKE
 # Create the library #
 ######################
 
+
 set(STATIC_LIB_NAME "fcgi_poll")
+set(OBJECT_LIBRARY "${LOCAL_CMAKE_PROJECT_NAME}_object")
 file(GLOB MODIFIED_FASTCGI_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/libfcgi/*.c*)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-add_library(${STATIC_LIB_NAME} ${MODIFIED_FASTCGI_SOURCES})
+
+# object library to avoid compiling twice
+add_library(${OBJECT_LIBRARY} OBJECT ${MODIFIED_FASTCGI_SOURCES})
+
+# static library
+add_library(${STATIC_LIB_NAME} $<TARGET_OBJECTS:${OBJECT_LIBRARY}>)
 
 ###########
 # Testing #
 ###########
 # TODO: include testing at http://s2.chameleon.ad:3000/Chameleon/FCGI_poll/src/master/test
+if(${LOCAL_CMAKE_PROJECT_NAME}_TEST)
+	enable_testing()
+	add_subdirectory(test)
+endif()
