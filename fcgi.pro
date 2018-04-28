@@ -1,7 +1,10 @@
 QT += core
 QT -= gui
 
-CONFIG += c++14
+CONFIG += c++1z
+
+QMAKE_CXX = g++-7
+QMAKE_CC = g++-7
 
 TARGET = fcgi
 CONFIG += console
@@ -11,7 +14,7 @@ CONFIG -= app_bundle
 #QMAKE_CFLAGS+= -fsanitize=address -fno-omit-frame-pointer
 #QMAKE_LFLAGS+= -fsanitize=address
 
-INCLUDEPATH += /home/roy/Public/FCGI_poll/include/
+INCLUDEPATH += include
 
 TEMPLATE = app
 
